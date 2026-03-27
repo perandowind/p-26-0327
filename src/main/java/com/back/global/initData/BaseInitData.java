@@ -1,5 +1,6 @@
 package com.back.global.initData;
 
+import com.back.domain.member.entity.Member;
 import com.back.domain.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
@@ -30,13 +31,17 @@ public class BaseInitData {
     }
 
     @Transactional
-    public void work1() {
+    public void work2() {
         if(postService.count() > 0) {
             return;
         }
-        Post post1 = postService.write("제목1", "내용1");
-        Post post2 = postService.write("제목2", "내용2");
-        postService.write("제목3", "내용3");
+
+        Member author1 = memberService.findByUsername("user1").get();
+        Member author2 = memberService.findByUsername("user2").get();
+
+        Post post1 = postService.write(author1, "제목1", "내용1");
+        Post post2 = postService.write(author1, "제목2", "내용2");
+        postService.write(author2, "제목3", "내용3");
 
         post1.addComment("댓글 1-1");
         post1.addComment("댓글 1-2");
@@ -45,7 +50,7 @@ public class BaseInitData {
         post2.addComment("댓글 2-2");
     }
 
-    public void work2() {
+    public void work1() {
         if (memberService.count() > 0) {
             return;
         }
