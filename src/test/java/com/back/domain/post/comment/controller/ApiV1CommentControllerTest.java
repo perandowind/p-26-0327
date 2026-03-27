@@ -55,7 +55,9 @@ public class ApiV1CommentControllerTest {
                 .andExpect(jsonPath("$[0].id").value(3))
                 .andExpect(jsonPath("$[0].createDate").exists())
                 .andExpect(jsonPath("$[0].modifyDate").exists())
-                .andExpect(jsonPath("$[0].content").value("댓글 1-3"));
+                .andExpect(jsonPath("$[0].content").value("댓글 1-3"))
+                .andExpect(jsonPath("$[0].authorId").value(3))
+                .andExpect(jsonPath("$[0].authorName").value("유저1"));
 
     }
 
