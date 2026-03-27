@@ -1,5 +1,6 @@
 package com.back.global.exceptionHandler;
 
+import com.back.global.exception.ServiceException;
 import com.back.global.rsData.RsData;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -17,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseBody
-    public RsData<Void> handleException(){
+    public RsData<Void> handleException() {
         return new RsData<Void>(
                 "존재하지 않는 데이터입니다.",
                 "404-1"
@@ -51,4 +52,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public RsData<Void> handleException(IllegalArgumentException e) {
+        return new RsData<>(
+                e.getMessage(),
+                "400-3"
+        );
+    }
+
+    @ExceptionHandler(ServiceException.class)
+    @ResponseBody
+    public RsData<Void> handleException(ServiceException e) {
+        return e.getRsData();
+    }
 }
