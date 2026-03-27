@@ -41,13 +41,13 @@ public class BaseInitData {
 
         Post post1 = postService.write(author1, "제목1", "내용1");
         Post post2 = postService.write(author1, "제목2", "내용2");
-        postService.write(author2, "제목3", "내용3");
+        postService.write(author2,"제목3", "내용3");
 
-        post1.addComment("댓글 1-1");
-        post1.addComment("댓글 1-2");
-        post1.addComment("댓글 1-3");
-        post2.addComment("댓글 2-1");
-        post2.addComment("댓글 2-2");
+        post1.addComment(author1, "댓글 1-1");
+        post1.addComment(author1, "댓글 1-2");
+        post1.addComment(author1, "댓글 1-3");
+        post2.addComment(author2, "댓글 2-1");
+        post2.addComment(author2, "댓글 2-2");
     }
 
     public void work1() {
