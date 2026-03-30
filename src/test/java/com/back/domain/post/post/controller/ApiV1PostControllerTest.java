@@ -228,12 +228,48 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 수정")
+    @DisplayName("글 수정, 작성자는 수정 가능")
     void t8() throws Exception {
         int targetId = 1;
         String title = "제목 수정";
         String content = "내용 수정";
         String apiKey = "user1";
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d".formatted(targetId))
+                                .header("Authorization", apiKey)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s",
+                                            "content": "%s"
+                                        }
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        // 필수 검증
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%d번 게시물이 수정되었습니다.".formatted(targetId)));
+
+        // 선택적 검증
+        Post post = postRepository.findById(targetId).get();
+
+        assertThat(post.getTitle()).isEqualTo(title);
+        assertThat(post.getContent()).isEqualTo(content);
+    }
+@Test
+    @DisplayName("글 수정, 다른 유저는 수정 불가")
+    void t8_2() throws Exception {
+        int targetId = 1;
+        String title = "제목 수정";
+        String content = "내용 수정";
+        String apiKey = "user2";
 
         ResultActions resultActions = mvc
                 .perform(
@@ -269,6 +305,32 @@ public class ApiV1PostControllerTest {
     void t9() throws Exception {
         int targetId = 1;
         String apiKey = "user1";
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d".formatted(targetId))
+                                .header("Authorization", apiKey)
+                )
+                .andDo(print());
+
+        // 필수 검증
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%d번 게시물이 삭제되었습니다.".formatted(targetId)));
+
+        // 선택적 검증
+        Post post = postRepository.findById(targetId).orElse(null);
+        assertThat(post).isNull();
+    }
+
+    @Test
+    @DisplayName("글 삭제, 다른 유저는 삭제 불가")
+    void t9_2() throws Exception {
+        int targetId = 1;
+        String apiKey = "user2";
 
         ResultActions resultActions = mvc
                 .perform(
