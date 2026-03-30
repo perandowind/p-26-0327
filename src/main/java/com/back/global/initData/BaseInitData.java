@@ -55,11 +55,12 @@ public class BaseInitData {
             return;
         }
 
-        memberService.join("system", "system", "시스템");
-        memberService.join("admin", "admin", "운영자");
-        memberService.join("user1", "1234", "유저1");
-        memberService.join("user2", "1234", "유저2");
-        memberService.join("user3", "1234", "유저3");
+        memberService.join("system", "system", "시스템", "system");
+        memberService.join("admin", "admin", "운영자", "admin");
+        memberService.join("user1", "1234", "유저1", "user1");
+        memberService.join("user2", "1234", "유저2", "user2");
+        memberService.join("user3", "1234", "유저3", "user3");
+        //테스트에 한에서는 테스트의 용의성을 위해 apiKey => user3 처럼 이름과 동일한 apiKey 값 지정
     }
 
 }
