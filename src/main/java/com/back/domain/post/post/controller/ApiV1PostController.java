@@ -4,7 +4,6 @@ import com.back.domain.member.entity.Member;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
-import com.back.global.exception.ServiceException;
 import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,8 +27,8 @@ public class ApiV1PostController {
     private final PostService postService;
     private final Rq rq;
 
-    @GetMapping(produces= MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary="글 다건 조회")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "글 다건 조회")
     public List<PostDto> list() {
         List<Post> result = postService.findAll();
 
@@ -41,7 +40,7 @@ public class ApiV1PostController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary="글 단건 조회")
+    @Operation(summary = "글 단건 조회")
     public PostDto detail(@PathVariable int id) {
 
         Post post = postService.findById(id).get();
@@ -66,7 +65,7 @@ public class ApiV1PostController {
     }
 
     @PostMapping
-    @Operation(summary="글 작성")
+    @Operation(summary = "글 작성")
     public RsData<PostWriteResBody> write(
             @RequestBody @Valid PostWriteReqBody reqBody,
             @RequestHeader("Authorization") String apiKey
@@ -106,7 +105,7 @@ public class ApiV1PostController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary="글 수정")
+    @Operation(summary = "글 수정")
     @Transactional
     public RsData<PostModifyResBody> modify(
             @PathVariable int id,
@@ -116,11 +115,8 @@ public class ApiV1PostController {
 
         Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
-         Post post = postService.findById(id).get(); // NoSuchElementException 처리존재해서 그냥 꺼냄
-
-        if (!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "수정 권한이 없습니다.");
-        }
+        Post post = postService.findById(id).get(); // NoSuchElementException 처리존재해서 그냥 꺼냄
+        post.checkModify(actor);
 
         postService.modify(id, reqBody.title, reqBody.content);
 
@@ -134,7 +130,7 @@ public class ApiV1PostController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary="글 삭제")
+    @Operation(summary = "글 삭제")
     public RsData<Void> delete(
             @PathVariable int id,
             @RequestHeader("Authorization") String apiKey
@@ -143,10 +139,7 @@ public class ApiV1PostController {
         Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
         Post post = postService.findById(id).get();
-
-        if (!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "삭제 권한이 없습니다.");
-        }
+        post.checkDelete(actor);
 
         postService.deleteById(id);
 
