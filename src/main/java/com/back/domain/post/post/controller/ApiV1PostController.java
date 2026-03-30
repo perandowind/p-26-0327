@@ -1,11 +1,11 @@
 package com.back.domain.post.post.controller;
 
 import com.back.domain.member.entity.Member;
-import com.back.domain.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.global.exception.ServiceException;
+import com.back.global.rq.Rq;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ApiV1PostController {
 
     private final PostService postService;
-    private final MemberService memberService;
+    private final Rq rq;
 
     @GetMapping(produces= MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary="글 다건 조회")
@@ -73,11 +73,7 @@ public class ApiV1PostController {
 
     ) {
 
-        apiKey = apiKey.replace("Bearer ", "");
-
-        Member actor = memberService.findByApiKey(apiKey).orElseThrow(
-                ()-> new ServiceException("401-1", "유효하지 않은 API 키입니다.")
-        );
+        Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
         Post post = postService.write(actor, reqBody.title, reqBody.content);
         long postsCount = postService.count();
@@ -118,16 +114,12 @@ public class ApiV1PostController {
             @RequestHeader("Authorization") String apiKey
     ) {
 
-        apiKey = apiKey.replace("Bearer ", "");
-
-        Member actor = memberService.findByApiKey(apiKey).orElseThrow(
-                () -> new ServiceException("401-1", "유효하지 않은 API 키입니다.")
-        );
+        Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
          Post post = postService.findById(id).get(); // NoSuchElementException 처리존재해서 그냥 꺼냄
 
         if (!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "권한이 없습니다.");
+            throw new ServiceException("403-1", "수정 권한이 없습니다.");
         }
 
         postService.modify(id, reqBody.title, reqBody.content);
@@ -148,16 +140,12 @@ public class ApiV1PostController {
             @RequestHeader("Authorization") String apiKey
     ) {
 
-        apiKey = apiKey.replace("Bearer ", "");
-
-        Member actor = memberService.findByApiKey(apiKey).orElseThrow(
-                () -> new ServiceException("401-1", "유효하지 않은 API 키입니다.")
-        );
+        Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
         Post post = postService.findById(id).get();
 
         if (!actor.equals(post.getAuthor())) {
-            throw new ServiceException("403-1", "권한이 없습니다.");
+            throw new ServiceException("403-1", "삭제 권한이 없습니다.");
         }
 
         postService.deleteById(id);
