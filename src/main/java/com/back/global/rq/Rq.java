@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component
 //@RequestScope // 각 HTTP 요청마다 새로운 Rq 객체가 생성되고, 요청이 끝나면 해당 객체는 소멸됩니다.
 @RequiredArgsConstructor
@@ -27,22 +29,58 @@ public class Rq {
         response.addCookie(cookie);
     }
 
+    public void deleteCookie(String name) {
+        Cookie cookie = new Cookie(name, "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setDomain("localhost");
+        cookie.setMaxAge(0);
+
+        response.addCookie(cookie);
+    }
+
     public Member getActor() {
 
         String authorizationHeader = request.getHeader("Authorization"); // null 처리 필요함
 
-        if (authorizationHeader == null) {
-            throw new ServiceException("401-1", "인증 정보가 헤더에 존재하지 않습니다.");
+        String apiKey;
+        // 헤더 방식 vs 쿠키 방식
+        if (authorizationHeader != null) {
+//            throw new ServiceException("401-1", "인증 정보가 헤더에 존재하지 않습니다.");
+            if (!authorizationHeader.startsWith("Bearer ")) {
+                throw new ServiceException("401-2", "잘못된 형식의 인증데이터입니다.");
+            }
+
+            apiKey = authorizationHeader.replace("Bearer ", "");
+        } else {
+            // 선언형
+            apiKey = request.getCookies() == null ? ""
+                    : Arrays.stream(request.getCookies())
+                    .filter(cookie -> cookie.getName().equals("apiKey"))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse("");
+
+            // 명령형
+//            Cookie[] cookies = request.getCookies();
+//            if(cookies == null) {
+//                throw new ServiceException("401-1", "인증 정보가 없습니다.");
+//            }
+//            for(Cookie cookie : cookies) {
+//                if(cookie.getName().equals("apiKey")) {
+//                    apiKey = cookie.getValue();
+//                    break;
+//                }
+//            }
         }
 
-        if (!authorizationHeader.startsWith("Bearer ")) {
-            throw new ServiceException("401-2", "잘못된 형식의 인증데이터입니다.");
+        if (apiKey.isBlank()) {
+            throw new ServiceException("401-3", "인증 정보가 존재하지 않습니다.");
         }
-
-        String apiKey = authorizationHeader.replace("Bearer ", "");
 
         return memberService.findByApiKey(apiKey).orElseThrow(
-                ()-> new ServiceException("401-1", "유효하지 않은 API 키입니다.")
+                () -> new ServiceException("401-1", "유효하지 않은 API 키입니다.")
         );
     }
+
 }
