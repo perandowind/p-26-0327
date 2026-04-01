@@ -34,10 +34,12 @@ public class ApiV1PostControllerTest {
 
     @Autowired
     private PostRepository postRepository;
-    @Autowired
-    private PostService postService;
+
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private PostService postService;
 
     @Test
     @DisplayName("글 다건 조회")
@@ -79,8 +81,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.title").value("제목1"))
                 .andExpect(jsonPath("$.content").value("내용1"))
                 .andExpect(jsonPath("$.authorId").value(3))
-                .andExpect(jsonPath("$.authorName").value("유저1"))
-        ;
+                .andExpect(jsonPath("$.authorName").value("유저1"));
 
 
         Post post = postRepository.findById(targetId).get();
@@ -149,7 +150,7 @@ public class ApiV1PostControllerTest {
 
     @Test
     @DisplayName("글 작성, 인증 헤더 정보가 없을 때")
-    void t4_1() throws Exception {
+    void t4_2() throws Exception {
         String title = "제목입니다";
         String content = "내용입니다";
 
@@ -170,10 +171,10 @@ public class ApiV1PostControllerTest {
 
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("createItem"))
+                .andExpect(handler().methodName("write"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("헤더에 인증 정보가 없습니다."));
+                .andExpect(jsonPath("$.msg").value("apiKey가 존재하지 않습니다."));
     }
 
     @Test
@@ -261,7 +262,7 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 수정, 작성자는 수정 가능")
+    @DisplayName("글 수정")
     void t8() throws Exception {
         int targetId = 1;
         String title = "제목 수정";
@@ -296,18 +297,19 @@ public class ApiV1PostControllerTest {
         assertThat(post.getTitle()).isEqualTo(title);
         assertThat(post.getContent()).isEqualTo(content);
     }
-@Test
-    @DisplayName("글 수정, 다른 유저는 수정 불가")
-    void t8_2() throws Exception {
-        int targetId = 1;
-        String title = "제목 수정";
-        String content = "내용 수정";
-        String apiKey = "user2";
+
+    @Test
+    @DisplayName("글 작성, 올바르지 않은 인증 데이터 형식")
+    void t9() throws Exception {
+        String title = "제목입니다";
+        String content = "내용입니다";
+
+        Member author = memberRepository.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/%d".formatted(targetId))
-                                .header("Authorization", "Bearer %s".formatted(apiKey))
+                        post("/api/v1/posts")
+                                .header("Authorization", "wrong %s".formatted(author.getApiKey()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -318,24 +320,47 @@ public class ApiV1PostControllerTest {
                 )
                 .andDo(print());
 
-        // 필수 검증
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("modify"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.msg").value("%d번 게시물이 수정되었습니다.".formatted(targetId)));
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-2"))
+                .andExpect(jsonPath("$.msg").value("잘못된 형식의 인증데이터입니다."));
+    }
 
-        // 선택적 검증
-        Post post = postRepository.findById(targetId).get();
+    @Test
+    @DisplayName("글 작성, 잘못된/없는 API 키")
+    void t10() throws Exception {
+        String title = "제목입니다";
+        String content = "내용입니다";
 
-        assertThat(post.getTitle()).isEqualTo(title);
-        assertThat(post.getContent()).isEqualTo(content);
+        Member author = memberRepository.findByUsername("user1").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey() + "2"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s",
+                                            "content": "%s"
+                                        }
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-4"))
+                .andExpect(jsonPath("$.msg").value("API 키가 유효하지 않습니다."));
     }
 
     @Test
     @DisplayName("글 삭제")
-    void t9() throws Exception {
+    void t11() throws Exception {
         int targetId = 1;
         String apiKey = "user1";
 
@@ -360,15 +385,48 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
-    @DisplayName("글 삭제, 다른 유저는 삭제 불가")
-    void t9_2() throws Exception {
-        int targetId = 1;
-        String apiKey = "user2";
+    @DisplayName("글 수정, 권한 체크 - 글 작성자가 아닌 경우")
+    void t13() throws Exception {
+        long targetId = 1;
+        String title = "제목 수정";
+        String content = "내용 수정";
+
+        Member author = memberRepository.findByUsername("user2").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d".formatted(targetId))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "%s",
+                                            "content": "%s"
+                                        }
+                                        """.formatted(title, content))
+                )
+                .andDo(print());
+
+        // 필수 검증
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("수정 권한이 없습니다."));
+    }
+
+    @Test
+    @DisplayName("글 삭제, 권한 체크 - 글 작성자가 아닌 경우")
+    void t14() throws Exception {
+        long targetId = 1;
+
+        Member author = memberRepository.findByUsername("user2").get();
 
         ResultActions resultActions = mvc
                 .perform(
                         delete("/api/v1/posts/%d".formatted(targetId))
-                                .header("Authorization", "Bearer %s".formatted(apiKey))
+                                .header("Authorization", "Bearer %s".formatted(author.getApiKey()))
                 )
                 .andDo(print());
 
@@ -376,12 +434,9 @@ public class ApiV1PostControllerTest {
         resultActions
                 .andExpect(handler().handlerType(ApiV1PostController.class))
                 .andExpect(handler().methodName("delete"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.resultCode").value("200-1"))
-                .andExpect(jsonPath("$.msg").value("%d번 게시물이 삭제되었습니다.".formatted(targetId)));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-2"))
+                .andExpect(jsonPath("$.msg").value("삭제 권한이 없습니다."));
 
-        // 선택적 검증
-        Post post = postRepository.findById(targetId).orElse(null);
-        assertThat(post).isNull();
     }
 }
