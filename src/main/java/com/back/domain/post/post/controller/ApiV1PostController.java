@@ -61,8 +61,7 @@ public class ApiV1PostController {
     }
 
     record PostWriteResBody(
-            PostDto postDto,
-            long postsCount
+            PostDto postDto
     ) {
     }
 
@@ -75,14 +74,12 @@ public class ApiV1PostController {
         Member actor = rq.getActor(); // 인증된 사용자 정보 가져오기
 
         Post post = postService.write(actor, reqBody.title, reqBody.content);
-        long postsCount = postService.count();
 
         return new RsData<>(
                 "%d번 게시물이 생성되었습니다.".formatted(post.getId()),
                 "201-1",
                 new PostWriteResBody(
-                        new PostDto(post),
-                        postsCount
+                        new PostDto(post)
                 )
         );
     }
