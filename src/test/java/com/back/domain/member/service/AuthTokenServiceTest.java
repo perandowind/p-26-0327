@@ -41,7 +41,7 @@ public class AuthTokenServiceTest {
 
     @Test
     @DisplayName("jjwt 최신 방식으로 JWT 생성, {name=\"Paul\", age=23}")
-    void t2() {
+    void t2() throws InterruptedException {
         // 토큰 만료기간: 1년
         long expireMillis = 1000L * 60 * 60 * 24 * 365; // 밀리세컨드 단위 -> 1000L = 1초
 
@@ -87,6 +87,9 @@ public class AuthTokenServiceTest {
         );
 
         assertThat(jwt).isNotBlank();
+
+        boolean rst = Ut.jwt.isValid(jwt, secretPattern);
+        assertThat(rst).isTrue();
 
         System.out.println("jwt = " + jwt);
     }
