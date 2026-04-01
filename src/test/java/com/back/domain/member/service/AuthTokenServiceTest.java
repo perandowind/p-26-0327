@@ -61,6 +61,9 @@ public class AuthTokenServiceTest {
                 .signWith(secretKey) // 키 서명
                 .compact();
 
+        byte[] keyBytes2 = "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890sdfgdfg".getBytes(StandardCharsets.UTF_8);
+        SecretKey secretKey2 = Keys.hmacShaKeyFor(keyBytes2);
+
         // jwt 확인(파싱)
         Map<String, Object> parsedPayload = (Map<String, Object>) Jwts
                 .parser()
