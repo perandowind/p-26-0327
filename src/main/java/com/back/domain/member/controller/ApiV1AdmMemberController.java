@@ -25,11 +25,15 @@ public class ApiV1AdmMemberController {
 
         Member actor = rq.getActor(); // 인증
 
-        // 관리자 권한 체크(인가)
-        if (!actor.isAdmin()) {
+        // 관리자 권한 체크
+        if(!actor.isAdmin()){
             throw new ServiceException("403-1", "권한이 없습니다.");
         }
 
-        return memberService.findAll();
+        return memberService.findAll()
+                .stream()
+                .map(MemberWithUsernameDto::new)
+                .toList();
+
     }
 }
