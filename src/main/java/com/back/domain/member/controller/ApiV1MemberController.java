@@ -97,8 +97,13 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     public MemberDto me() {
 
-        Member actor = rq.getActor();
-        return new MemberDto(actor);
+        // 인증 -> DB조회 X
+        Member tmpActor = rq.getActor();
+
+        // 내 전체 회원 정보 조회가 목적 -> DB 조회
+        Member realActor = memberService.findById(tmpActor.getId()).get();
+
+        return new MemberDto(realActor);
 
     }
 }
