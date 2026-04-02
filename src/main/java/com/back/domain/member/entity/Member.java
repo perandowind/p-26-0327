@@ -34,4 +34,8 @@ public class Member extends BaseEntity {
         this.username = username;
         this.nickname = nickname;
     }
+
+    public boolean isAdmin() {
+        return "admin".equals(username);
+    }
 }
