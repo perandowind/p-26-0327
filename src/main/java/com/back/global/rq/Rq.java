@@ -72,6 +72,8 @@ public class Rq {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setDomain("localhost");
+        cookie.setSecure(true); // http -> X | https -> O
+        cookie.setAttribute("SameSite", "strict"); // 완전히 동일한 사이트에서 발생한 요청에만 쿠키를 보낸다 -> none 쓰지말기
 
         response.addCookie(
                 cookie
