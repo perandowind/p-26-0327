@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -108,7 +107,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
 
         // accessToken으로 인증이 제대로 이루어지지 않은 경우
         if (member == null) {
@@ -126,9 +125,11 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         // todo: SecurityContextHolder 에 인증데이터 저장
 
         // Spring Security 가 사용하는 회원정보
-        UserDetails user = new User(
+        UserDetails user = new SecurityUser(
+                member.getId(),
                 member.getUsername(),
                 member.getPassword(),
+                member.getNickname(),
                 List.of()
         );
 
