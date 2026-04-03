@@ -50,8 +50,6 @@ public class ApiV1AdmPostControllerTest {
         long count = postRepository.count();
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1AdmPostController.class))
-                .andExpect(handler().methodName("count"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(count));
     }

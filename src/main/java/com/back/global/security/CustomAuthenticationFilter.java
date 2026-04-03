@@ -30,12 +30,14 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
         logger.debug("CustomAuthenticationFilter is called");
 
         try {
             authenticate(request, response, filterChain);
         } catch (ServiceException e) {
-            RsData rsData = e.getRsData();
+            RsData<Void> rsData = e.getRsData();
+
             response.setContentType("application/json");
             response.setStatus(rsData.getStatusCode());
             response.getWriter().write("""
@@ -45,24 +47,23 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                     }
                     """.formatted(rsData.resultCode(), rsData.msg()));
         }
-
     }
 
-    private void authenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    private void authenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         if(!request.getRequestURI().startsWith("/api/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        if(List.of("/api/v1/members/join", "/api/v1/members/login", "/api/v1/posts").contains(request.getRequestURI())) {
+        if(List.of("/api/v1/members/join", "/api/v1/members/login").contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String authorizationHeader = rq.getHeader("Authorization", "");
-
         String apiKey;
         String accessToken;
+
+        String authorizationHeader = rq.getHeader("Authorization", "");
 
         if (!authorizationHeader.isBlank()) {
             // 헤더 방식
@@ -70,8 +71,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 throw new ServiceException("401-2", "잘못된 형식의 인증데이터입니다.");
             }
 
-            String[] headerAuthorizationBits = authorizationHeader.split(" ", 3);
-            apiKey = authorizationHeader.replace("Bearer ", "");
+            String[] headerAuthorizationBits = authorizationHeader.split(" ", 3);            apiKey = authorizationHeader.replace("Bearer ", "");
 
             apiKey = headerAuthorizationBits[1];
             accessToken = headerAuthorizationBits.length == 3 ? headerAuthorizationBits[2] : "";
@@ -90,7 +90,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 //            throw new ServiceException("401-1", "apiKey가 존재하지 않습니다.");
 //        }
 
-
         if (isAccessTokenExists) {
             Map<String, Object> payload = memberService.payloadOrNull(accessToken);
 
@@ -103,11 +102,10 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if (!isApiKeyExists) {
+        if(!isApiKeyExists) {
             filterChain.doFilter(request, response);
             return;
         }
-
 
         // accessToken으로 인증이 제대로 이루어지지 않은 경우
         if (member == null) {
@@ -122,9 +120,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             rq.setHeader("accessToken", newAccessToken);
         }
 
-        // todo: SecurityContextHolder 에 인증데이터 저장
-
-        // Spring Security 가 사용하는 회원정보
+        // SecurityContextHolder에 인증데이터 저장
         UserDetails user = new SecurityUser(
                 member.getId(),
                 member.getUsername(),
@@ -139,15 +135,11 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 user.getAuthorities()
         );
 
-
-
         SecurityContextHolder
                 .getContext()
                 .setAuthentication(authentication);
 
+
         filterChain.doFilter(request, response);
-
     }
-
-
 }
