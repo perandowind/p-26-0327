@@ -112,6 +112,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 user.getAuthorities()
         );
 
+        
+
         SecurityContextHolder
                 .getContext()
                         .setAuthentication(authentication);

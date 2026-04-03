@@ -95,8 +95,8 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     public MemberDto me() {
 
-        // 인증 -> DB조회 X
-        Member tmpActor = rq.getActor();
+        // 현재 인증작업이없다 -> 근데 막힘 = 커스텀 필터에서 막는 것!!
+        Member tmpActor = rq.getActor(); // 그냥 user1 정보 가져오는 것으로 수정했음
 
         // 내 전체 회원 정보 조회가 목적 -> DB 조회
         Member realActor = memberService.findById(tmpActor.getId()).get();
