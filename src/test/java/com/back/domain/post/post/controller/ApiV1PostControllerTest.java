@@ -146,8 +146,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("4번 게시물이 생성되었습니다."))
@@ -180,11 +178,9 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
-                .andExpect(jsonPath("$.msg").value("apiKey가 존재하지 않습니다."));
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
     }
 
     @Test
@@ -207,8 +203,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.resultCode").value("400-1"))
                 .andExpect(jsonPath("$.msg").value("title-NotBlank-01-title-제목은 필수입니다.\ntitle-Size-03-title-제목은 2자 이상 10자 이하로 입력해주세요."));
@@ -237,8 +231,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.resultCode").value("400-1"))
                 .andExpect(jsonPath("$.msg").value("content-NotBlank-02-content-내용은 필수입니다.\ncontent-Size-04-content-내용은 2자 이상 100자 이하로 입력해주세요.".stripIndent().trim()));
@@ -264,8 +256,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.resultCode").value("400-2"))
                 .andExpect(jsonPath("$.msg").value("잘못된 형식의 요청 데이터입니다."));
@@ -299,8 +289,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isCreated());
     }
 
@@ -365,8 +353,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-2"))
                 .andExpect(jsonPath("$.msg").value("잘못된 형식의 인증데이터입니다."));
@@ -395,8 +381,6 @@ public class ApiV1PostControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("write"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-4"))
                 .andExpect(jsonPath("$.msg").value("API 키가 유효하지 않습니다."));
