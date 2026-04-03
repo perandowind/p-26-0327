@@ -88,8 +88,6 @@ public class ApiV1AdmMemberControllerTest {
                 .andDo(print());
 
         resultActions
-                .andExpect(handler().handlerType(ApiV1AdmMemberController.class))
-                .andExpect(handler().methodName("list"))
                 .andExpect(status().isForbidden()) // 403 인가되지 않은 페이지(API)에 접근하는 경우
                 .andExpect(jsonPath("$.resultCode").value("403-1"))
                 .andExpect(jsonPath("$.msg").value("권한이 없습니다."));

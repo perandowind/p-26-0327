@@ -21,12 +21,14 @@ public class CustomUserDetailService implements UserDetailsService {
 
         Member member = memberService.findByUsername(username).get();
 
-        return new SecurityUser(
+        SecurityUser user = new SecurityUser(
                 member.getId(),
                 member.getUsername(),
-                member.getPassword(),
+                "",
                 member.getNickname(),
                 List.of()
         );
+
+        return user;
     }
 }
