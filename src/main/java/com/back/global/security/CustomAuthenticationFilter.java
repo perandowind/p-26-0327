@@ -55,7 +55,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if(List.of("/api/v1/members/join", "/api/v1/members/login").contains(request.getRequestURI())) {
+        if(List.of("/api/v1/members/join", "/api/v1/members/login", "/api/v1/posts").contains(request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -85,10 +85,12 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
         boolean isAccessTokenExists = !accessToken.isBlank();
         boolean isAccessTokenValid = false;
+        boolean isApiKeyExists = !apiKey.isBlank();
 
-        if (apiKey.isBlank()) {
-            throw new ServiceException("401-1", "apiKey가 존재하지 않습니다.");
-        }
+//        if (apiKey.isBlank()) {
+//            throw new ServiceException("401-1", "apiKey가 존재하지 않습니다.");
+//        }
+
 
         if (isAccessTokenExists) {
             Map<String, Object> payload = memberService.payloadOrNull(accessToken);
@@ -101,6 +103,12 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
                 isAccessTokenValid = true;
             }
         }
+
+        if (!isApiKeyExists) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
 
         // accessToken으로 인증이 제대로 이루어지지 않은 경우
         if (member == null) {
