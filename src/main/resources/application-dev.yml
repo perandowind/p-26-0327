@@ -1,6 +1,22 @@
 spring:
   datasource:
-    url: jdbc:h2:./db_dev;MODE=MySQL
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    # localhost 뒤의 포트번호를 yaml에 설정한 13306으로 맞춰야 합니다.
+    url: jdbc:mysql://localhost:13306/my_project_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: "1234"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # 처음에는 create로 테이블을 만들고, 이후엔 update로 관리하세요
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+#spring:
+#  datasource:
+#    url: jdbc:h2:./db_dev;MODE=MySQL
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
